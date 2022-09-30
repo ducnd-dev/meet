@@ -110,12 +110,7 @@ export default {
                         method: 'GET',
                     },
                 },
-                redirect: {
-                    login: '/',
-                    logout: '/',
-                    callback: '/',
-                    home: '/',
-                },
+                redirect: false,
             },
         },
     },
@@ -160,6 +155,8 @@ export default {
 
     env: {
         API_HOST: process.env.API_HOST || 'localhost',
+        AGORA_APP_ID: process.env.AGORA_APP_ID,
+        AGORA_APP_IDENTIFIER: process.env.AGORA_APP_IDENTIFIER,
         RSA_PUBLIC_KEY: process.env.RSA_PUBLIC_KEY,
     },
 };

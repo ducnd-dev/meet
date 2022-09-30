@@ -8,15 +8,21 @@
             <div class="flex flex-1 flex-col h-full  room-wrapper justify-between gap-4 overflow-hidden">
                 <div
                     id="room"
-                    :class="`grid grid-cols-2 relative bg-white h-1/3 mt-4 ${actionStatus.zoom? '' : 'mb-3 lg:mb-12'}`"
+                    :class="`grid grid-cols-3 gap-4 relative overflow-y-auto h-1/3 mt-4 ${actionStatus.zoom? '' : 'mb-3 lg:mb-12'}`"
                 >
                     <div
                         v-for="member in roomMembers"
+                        :id="member.id"
                         :key="member.id"
-                        class="col-span-1"
-                        :class="`bg-[${randomColor}]`"
+                        class="col-span-1 user relative rounded-sm overflow-hidden aspect-video bg-black"
                     >
-                        <span>{{ getAvtByName(member.full_name) }}</span>
+                        <div class="absolute z-30 h-10 px-3 py-1 overflow-hidden right-0 bottom-0 left-0 flex justify-between">
+                            <span class="text-white truncate mr-3"> {{ getAvtByName(member.full_name) }} </span>
+                            <div class="flex items-center gap-2">
+                                <img :class="`audio-${member.id}`" :src="`/images/room/audio-off-white.svg`" class="w-4 h-4">
+                                <img :class="`video-${member.id}`" :src="`/images/room/video-off-white.svg`" class="w-4 h-4">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -54,15 +60,16 @@
             <img :src="`/images/room/view-mode-${!actionStatus.dragStudent?'off':'active'}.svg`" class="mr-6" @click="actionStatus.dragStudent = !actionStatus.dragStudent">
             <img src="/images/room/zoom-in.svg" @click="toggleFullScreen">
         </div>
+        <ModalLogin ref="login" @logined="init" />
     </div>
 </template>
 <script>
     import { debounce } from 'lodash';
     import RoomAction from '@/components/room/RoomAction.vue';
     import Members from '@/components/room/Members.vue';
-
+    import ModalLogin from '@/components/auth/modal/Login.vue';
     import {
-        addStream, handleRemoveEmptyImg, handleAddEmptyImg, handleShowStatusDevice,
+        addStream, handleShowStatusDevice, getAvtByName, randomColor,
     } from '@/utils/room';
 
     export const APP_ID = process.env.AGORA_APP_ID;
@@ -72,6 +79,7 @@
         components: {
             RoomAction,
             Members,
+            ModalLogin,
         },
         async asyncData({
             query, redirect,
@@ -81,7 +89,7 @@
                     role: query.role || '',
                 };
             } catch (error) {
-                redirect('/live-class');
+                redirect('/');
             }
         },
         data: () => ({
@@ -103,12 +111,9 @@
                 isScreenShare: false,
             },
             elementWrapper: null,
-            whiteWebSdk: null,
-            notifications: [],
             teacher: {},
             isHost: false,
             isLoading: false,
-            userHandup: [],
             rtc: {},
             roomMembers: [],
             checkDevice: {
@@ -149,21 +154,31 @@
             },
         },
         async mounted() {
-            this.handleCheckDevice();
-            this.rtc = {
-                localAudioTrack: null,
-                localVideoTrack: null,
-                client: await this.$AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' }),
-            };
-
-            this.isLoading = true;
-            this.handleFullScreen();
-            await this.initData();
+            if (!this.$auth.loggedIn) {
+                this.$refs.login.open();
+                this.$auth.options.redirect = false;
+                return;
+            }
+            this.init();
         },
         beforeDestroy() {
             this.outStream();
         },
         methods: {
+            getAvtByName,
+            randomColor,
+            async init() {
+                this.handleCheckDevice();
+                this.rtc = {
+                    localAudioTrack: null,
+                    localVideoTrack: null,
+                    client: await this.$AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' }),
+                };
+
+                this.isLoading = true;
+                this.handleFullScreen();
+                await this.initData();
+            },
             handleCheckDevice() {
                 navigator.mediaDevices.enumerateDevices()
                     .then((devices) => {
@@ -180,29 +195,20 @@
                 this.options.tokenRtc = await this.$api.room.getHostTokenRtc({
                     room_id: +this.options.roomId,
                 });
-                this.roomMembers = [this.user];
-                this.teacher = await this.$api.liveClassRoom.room.getUser(this.options.creator);
-                this.changeRoomInfor({
-                    teacher: this.teacher,
-                    classId: this.options.classId,
-                });
-                this.messages = await this.$api.liveClassRoom.room.getCoversationMessages(`r-${this.options.roomId}`);
+                this.roomMembers = [this.$auth.user];
+                this.teacher = await this.$api.user.getUser(this.options.creator);
                 this.rtc.client.enableAudioVolumeIndicator();
-
-                // this.whiteWebSdk = new this.$WhiteWebSdk({
-                //     appIdentifier: APP_IDENTIFIER,
-                //     region: 'sg',
-                // });
                 this.remoteUsers = await this.rtc.client.remoteUsers;
-                this.elementWrapper = document.getElementById('room');
                 await this.initStream();
             },
+
             async getMemberOfRoom(uid, join) {
                 this.remoteUsers = await this.rtc.client.remoteUsers;
 
                 if (uid) {
                     if (!join) {
                         this.roomMembers = this.roomMembers.filter((item) => item.id !== uid);
+                        await this.addUserToList(uid);
                     } else {
                         await this.addUserToList(uid);
                     }
@@ -215,17 +221,10 @@
 
             async getRoomDetail() {
                 const roomDetail = await this.$api.room.getRoomByNanoLink(this.$route.params.roomCode);
-                if (this.$route.query.role === 'host') {
-                    roomDetail.creator = this.user.id;
-                    await this.$api.liveClassRoom.room.updateRoom({
-                        id: roomDetail.id, creator: roomDetail.creator, class_id: roomDetail.class_id, name: roomDetail.name,
-                    });
-                }
-                const user = this.loggedInUser;
                 this.options = {
                     classId: roomDetail.class_id,
                     roomId: roomDetail.id,
-                    uid: user.id,
+                    uid: this.$auth.user.id,
                     uidChat: '',
                     channel: `${roomDetail.name}_${roomDetail.id}`,
                     creator: roomDetail.creator,
@@ -244,7 +243,6 @@
                         if (this.$route.query.role === 'host') {
                             this.isHost = true;
                         }
-
                         this.checkJoin = true;
                         this.initAgora();
                     }
@@ -343,6 +341,7 @@
                     room.requestFullscreen();
                 }
             },
+
             async initStream() {
                 try {
                     await this.rtc.client.join(APP_ID, this.options.channel, this.options.tokenRtc, this.options.uid);
@@ -377,7 +376,7 @@
                         hasAudio: this.micPermission ? this.actionStatus.hasAudio : false,
                         hasVideo: this.actionStatus.hasVideo,
                         videoTrack: this.rtc.localVideoTrack,
-                    }, this.options.creator, false, this.$api);
+                    }, this.$api);
                     this.isLoading = false;
                     this.actionStatus.joined = true;
                 }
@@ -432,8 +431,7 @@
                 });
                 this.rtc.client.on('user-published', async (user, mediaType) => {
                     await this.rtc.client.subscribe(user, mediaType);
-                    handleRemoveEmptyImg(user.id);
-                    addStream(user, this.options.creator, false, this.$api);
+                    addStream(user, this.$api);
                     if (mediaType === 'audio') {
                         const remoteAudioTrack = user.audioTrack;
                         remoteAudioTrack.play();
@@ -442,8 +440,7 @@
                 });
                 this.rtc.client.on('user-unpublished', async (user, mediaType) => {
                     if (mediaType === 'video') {
-                        handleShowStatusDevice('video', user.uid, false, 'user-unpublished');
-                        handleAddEmptyImg(user.uid, this.$api);
+                        handleShowStatusDevice('video', user.uid, false);
                     }
                     if (mediaType === 'audio') {
                         handleShowStatusDevice('audio', user.uid, false);
@@ -463,7 +460,6 @@
                         }
                         await this.getRoomDetail();
                         await this.getMemberOfRoom(user.uid, true);
-                        handleRemoveEmptyImg(user.id);
                         addStream(user, this.options.creator, false, this.$api);
                     } catch (error) {
                         this.handleFail(error);
@@ -475,7 +471,7 @@
 
             async addUserToList(uid) {
                 if (!this.roomMembers.some((item) => item.id === uid)) {
-                    const user = await this.$api.liveClassRoom.room.getUser(uid);
+                    const user = await this.$api.user.getUser(uid);
                     this.roomMembers.push(user);
                 }
             },
@@ -566,18 +562,17 @@
     height: calc(100vh - 84px);
 }
 #room {
-    border-radius: 10px;
-    overflow: hidden;
-    div video {
-        object-fit: contain !important;
+    @apply overflow-hidden;
+    .user {
+        video {
+            @apply object-contain z-20 w-full h-full rounded-sm aspect-square;
+        }
     }
 }
 .content-wrapper {
     height: calc(100% - 100px);
 }
-.student-hoz {
-    min-width: 256px;
-}
+
 .back-drop {
     backdrop-filter: blur(8px);
 }

@@ -38,7 +38,6 @@
             },
 
             async handleCreateAccount(form) {
-                console.log(form);
                 await this.$auth.loginWith('local', {
                     data: {
                         full_name: form?.fullName || '',
