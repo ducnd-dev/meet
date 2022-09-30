@@ -6,10 +6,10 @@
         :rules="rules"
     >
         <a-form-model-item label="Họ và tên" prop="fullName">
-            <a-input v-model="form.fullName" placeholder="input placeholder" />
+            <a-input v-model="form.fullName" placeholder="Họ và tên" />
         </a-form-model-item>
         <a-form-model-item label="Tên phòng">
-            <a-input v-model="form.roomName" placeholder="input placeholder" />
+            <a-input v-model="form.roomName" placeholder="Tên phòng" />
         </a-form-model-item>
         <a-form-model-item>
             <a-button type="primary" size="large" @click="submit">

@@ -20,6 +20,7 @@
         data() {
             return {
                 visible: false,
+                isLoading: false,
             };
         },
 
@@ -37,9 +38,12 @@
             },
 
             async handleCreateAccount(form) {
+                console.log(form);
                 await this.$auth.loginWith('local', {
-                    full_name: form?.fullName || '',
-                    role: 'HOST',
+                    data: {
+                        full_name: form?.fullName || '',
+                        role: 'HOST',
+                    },
                 });
             },
 

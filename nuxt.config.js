@@ -42,6 +42,8 @@ export default {
         '@/plugins/api',
         { src: '@/plugins/axios', mode: 'client' },
         '@/plugins/ant-design',
+        { src: '@/plugins/agora-rtc.js', mode: 'client' },
+
     ],
 
     robots: [
@@ -88,32 +90,30 @@ export default {
         strategies: {
             local: {
                 token: {
-                    property: 'data.sid',
+                    property: 'data.token',
                     global: true,
                     required: true,
-                    name: 'auth',
-                    maxAge: 60 * 60 * 24 * 30,
-                    type: false,
+                    maxAge: 60 * 60 * 24 * 30, // 1 month
                 },
                 autoLogout: false,
                 user: {
-                    property: 'data.data',
+                    property: 'data',
                     autoFetch: true,
                 },
                 endpoints: {
                     login: {
-                        url: `${process.env.API_HOST}/user/login`,
+                        url: `${process.env.API_HOST}/user/quick-register`,
                         method: 'POST',
                     },
                     user: {
                         url: `${process.env.API_HOST}/user/info`,
-                        method: 'POST',
+                        method: 'GET',
                     },
                 },
                 redirect: {
-                    login: '/login',
+                    login: '/',
                     logout: '/',
-                    callback: '/login',
+                    callback: '/',
                     home: '/',
                 },
             },

@@ -1,6 +1,6 @@
 <template>
     <div class="home">
-        <div class="container h-full">
+        <div class="container">
             <div class="flex items-center h-full">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-32">
                     <div class="flex flex-col gap-8">

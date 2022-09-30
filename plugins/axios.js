@@ -1,12 +1,13 @@
+/* eslint-disable no-unused-vars */
 import { message as $message } from 'ant-design-vue';
 
 export default function ({ $axios, redirect }, inject) {
-    $axios.onError((error) => {
-        const code = error?.response ? parseInt(error.response.status, 10) : null;
-        if (code === 401) {
-            redirect('/login');
-        }
-    });
+    // $axios.onError((error) => {
+    //     const code = error?.response ? parseInt(error.response.status, 10) : null;
+    //     if (code === 401) {
+    //         redirect('/');
+    //     }
+    // });
 
     const handleError = (error, callback = null) => {
         console.log(error);
