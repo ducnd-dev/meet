@@ -12,6 +12,16 @@ module.exports = {
     'bg-yellow-100',
     ],
     theme: {
+        container: {
+            center: true,
+            padding: {
+                DEFAULT: '1rem',
+                sm: '2rem',
+                lg: '4rem',
+                xl: '5rem',
+                '2xl': '6rem',
+            },
+        },
         extend: {
             boxShadow: {
                 '3xl': '0px 1px 0px #D7DAE7',

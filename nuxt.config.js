@@ -17,7 +17,7 @@ export default {
     },
 
     head: {
-        title: 'ezi-hotel',
+        title: 'Meet',
         htmlAttrs: {
             lang: 'en',
         },
@@ -28,7 +28,7 @@ export default {
             { name: 'format-detection', content: 'telephone=no' },
         ],
         link: [
-            { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+            { rel: 'icon', type: 'image/x-icon', href: '/logo.png' },
         ],
     },
 
@@ -42,8 +42,6 @@ export default {
         '@/plugins/api',
         { src: '@/plugins/axios', mode: 'client' },
         '@/plugins/ant-design',
-        '@/plugins/filters',
-        '@/plugins/global-components',
     ],
 
     robots: [
@@ -99,7 +97,7 @@ export default {
                 },
                 autoLogout: false,
                 user: {
-                    property: 'data.account',
+                    property: 'data.data',
                     autoFetch: true,
                 },
                 endpoints: {
@@ -107,12 +105,8 @@ export default {
                         url: `${process.env.API_HOST}/user/login`,
                         method: 'POST',
                     },
-                    logout: {
-                        url: `${process.env.API_HOST}/user/logout`,
-                        method: 'GET',
-                    },
                     user: {
-                        url: `${process.env.API_HOST}/user/get_profile`,
+                        url: `${process.env.API_HOST}/user/info`,
                         method: 'POST',
                     },
                 },
@@ -126,9 +120,9 @@ export default {
         },
     },
 
-    router: {
-        middleware: ['auth'],
-    },
+    // router: {
+    //     middleware: ['auth'],
+    // },
 
     build: {
         postcss: {
