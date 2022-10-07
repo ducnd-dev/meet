@@ -4,19 +4,20 @@
         :loading="isLoading"
         class="flex flex-col relative bg-prim-5 overflow-hidden live-room h-full"
     >
-        <div id="live-class-content-wrapper" :class="`${actionStatus.zoom?'':'container'} flex flex-1 h-full content-wrapper`">
-            <div class="flex flex-1 flex-col h-full  room-wrapper justify-between gap-4 overflow-hidden">
+        <div id="live-class-content-wrapper" :class="getContentClass">
+            <div class="flex flex-1 flex-cols room-wrapper justify-center gap-4 overflow-hidden">
                 <div
                     id="room"
-                    :class="`grid grid-cols-3 gap-4 relative overflow-y-auto h-1/3 mt-4 ${actionStatus.zoom? '' : 'mb-3 lg:mb-12'}`"
+                    :class="getRoomClass"
                 >
                     <div
                         v-for="member in roomMembers"
                         :id="member.id"
                         :key="member.id"
-                        class="col-span-1 user relative rounded-sm overflow-hidden aspect-video bg-black"
+                        class="user relative rounded-sm overflow-hidden max-h-full max-w-full aspect-video bg-black"
+                        :class="getItemClass"
                     >
-                        <div class="absolute z-30 h-10 px-3 py-1 overflow-hidden right-0 bottom-0 left-0 flex justify-between">
+                        <div class="absolute z-30 h-10 px-3 py-1 overflow-hidden right-0 bottom-0 left-0 status flex justify-between">
                             <span class="text-white truncate mr-3"> {{ getAvtByName(member.full_name) }} </span>
                             <div class="flex items-center gap-2">
                                 <img :class="`audio-${member.id}`" :src="`/images/room/audio-off-white.svg`" class="w-4 h-4">
@@ -27,7 +28,7 @@
                 </div>
             </div>
             <div
-                :class="actionStatus.people?`flex  w-full lg:w-2/6 chat-wrapper`: 'opacity-0 w-0'"
+                :class="getMembersClass"
             >
                 <members
                     v-if="actionStatus.joined"
@@ -42,9 +43,10 @@
         </div>
         <div
             v-show="showActionFullScreen"
-            :class="`flex  justify-center actions-wrapper py-3 bg-white border-t border-gray-20 z-20 ${actionStatus.zoom ?'fixed bottom-0 bg-gray-400 bg-opacity-5 back-drop':''}`"
+            :class="getActionClass"
         >
             <room-action
+                class=""
                 :check-device="checkDevice"
                 :options="options"
                 :is-host="isHost"
@@ -55,10 +57,6 @@
                 @toggleFullScreen="toggleFullScreen"
                 @leave="outStream()"
             />
-        </div>
-        <div v-if="actionStatus.zoom && showActionFullScreen" class="top-actions bg-white rounded-2xl p-6 flex absolute top-7 right-1/2 z-20">
-            <img :src="`/images/room/view-mode-${!actionStatus.dragStudent?'off':'active'}.svg`" class="mr-6" @click="actionStatus.dragStudent = !actionStatus.dragStudent">
-            <img src="/images/room/zoom-in.svg" @click="toggleFullScreen">
         </div>
         <ModalLogin ref="login" @logined="init" />
     </div>
@@ -92,6 +90,7 @@
                 redirect('/');
             }
         },
+
         data: () => ({
             checkJoin: false,
             options: {},
@@ -121,6 +120,28 @@
                 hasVideo: false,
             },
         }),
+
+        computed: {
+            getItemClass() {
+                return this.roomMembers.length <= 1 ? 'col-span-3 min-h-full' : 'col-span-1';
+            },
+
+            getRoomClass() {
+                return `grid grid-cols-1 lg:grid-cols-3 gap-4  relative overflow-y-auto mt-4 ${this.actionStatus.zoom ? '' : 'mb-3 lg:mb-12'}`;
+            },
+
+            getContentClass() {
+                return `${this.actionStatus.zoom ? '' : 'container'} flex flex-1 h-full content-wrapper`;
+            },
+
+            getMembersClass() {
+                return this.actionStatus.people ? 'flex  w-full lg:w-2/6 chat-wrapper' : 'opacity-0 w-0';
+            },
+
+            getActionClass() {
+                return `flex  justify-center actions-wrapper p-3 z-50 ${this.actionStatus.zoom ? 'fixed bottom-0 bg-gray-400 bg-opacity-5 back-drop' : ''}`;
+            },
+        },
 
         watch: {
             'actionStatus.hasAudio': async function (status) {
@@ -153,6 +174,7 @@
                 }
             },
         },
+
         async mounted() {
             if (!this.$auth.loggedIn) {
                 this.$refs.login.open();
@@ -161,9 +183,11 @@
             }
             this.init();
         },
+
         beforeDestroy() {
             this.outStream();
         },
+
         methods: {
             getAvtByName,
             randomColor,
@@ -447,9 +471,7 @@
                     }
                 });
                 this.rtc.client.on('user-left', (user) => {
-                    const userContainer = document.getElementById(user.uid);
-                    if (userContainer) userContainer.remove();
-                    this.getMemberOfRoom(user.uid);
+                    this.roomMembers = this.roomMembers.filter((item) => item.id !== user.uid);
                 });
                 this.rtc.client.on('user-joined', async (user) => {
                     try {
@@ -541,12 +563,6 @@
                     if (wrapper) {
                         if (volume.level > 10) {
                             wrapper.style.border = '2px solid blue';
-
-                            this.userTell = wrapper.getAttribute('data-fullname');
-                            if (!wrapper.getAttribute('data-name')) {
-                                const slider = document.getElementById('room-student');
-                                slider.insertBefore(wrapper, slider.firstChild);
-                            }
                         } else {
                             wrapper.style.border = '0';
                         }
@@ -564,11 +580,15 @@
 #room {
     @apply overflow-hidden;
     .user {
-        video {
-            @apply object-contain z-20 w-full h-full rounded-sm aspect-square;
-        }
+        // div:not(.status) {
+        //     @apply flex justify-center w-fit;
+        //     video {
+        //         @apply z-20 rounded-sm;
+        //     }
+        // }
     }
 }
+
 .content-wrapper {
     height: calc(100% - 100px);
 }
