@@ -8,7 +8,7 @@
                             Cuộc họp video chất lượng cao cho tất cả mọi người
                         </h2>
                         <p class="text-sm">
-                            Khách được mời có thể tham gia hội nghị truyền hình trực tuyến từ máy tính bằng bất kỳ trình duyệt web hiện đại nào mà không cần cài đặt phần mềm. Trên thiết bị di động, khách có thể tham gia từ Hệ thống Họp trực tuyến VCCI.
+                            Khách được mời có thể tham gia hội nghị truyền hình trực tuyến từ máy tính bằng bất kỳ trình duyệt web hiện đại nào mà không cần cài đặt phần mềm.
                         </p>
 
                         <div class="flex flex-wrap lg:flex-nowrap gap-2 ">
