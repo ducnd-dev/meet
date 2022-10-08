@@ -33,11 +33,9 @@
                 <members
                     v-if="actionStatus.joined"
                     :room-members="roomMembers"
-                    :remote-users="remoteUsers"
                     :room-id="options.roomId"
                     :is-host="isHost"
                     :action-status="actionStatus"
-                    :uid="options.uid"
                 />
             </div>
         </div>
@@ -79,9 +77,7 @@
             Members,
             ModalLogin,
         },
-        async asyncData({
-            query, redirect,
-        }) {
+        async asyncData({ query, redirect }) {
             try {
                 return {
                     role: query.role || '',
@@ -110,7 +106,6 @@
                 isScreenShare: false,
             },
             elementWrapper: null,
-            teacher: {},
             isHost: false,
             isLoading: false,
             rtc: {},
@@ -157,21 +152,19 @@
             'actionStatus.hasVideo': async function (status) {
                 if (this.rtc.localVideoTrack && this.checkJoin) {
                     await this.rtc.localVideoTrack.setEnabled(status);
-                    handleShowStatusDevice('video', this.options.uid, status, 'actionStatus.hasVideo');
+                    handleShowStatusDevice('video', this.options.uid, status);
                 }
             },
             'actionStatus.speaker': function (status) {
-                if (this.rtc.client) {
-                    if (!status) {
-                        this.remoteUsers.forEach((user) => {
-                            user.audioTrack.setVolume(0);
-                        });
-                    } else {
-                        this.remoteUsers.forEach((user) => {
-                            user.audioTrack.setVolume(200);
-                        });
-                    }
+                if (this.rtc.client && !status) {
+                    this.remoteUsers.forEach((user) => {
+                        user.audioTrack.setVolume(0);
+                    });
+                    return;
                 }
+                this.remoteUsers.forEach((user) => {
+                    user.audioTrack.setVolume(200);
+                });
             },
         },
 
@@ -220,7 +213,6 @@
                     room_id: +this.options.roomId,
                 });
                 this.roomMembers = [this.$auth.user];
-                this.teacher = await this.$api.user.getUser(this.options.creator);
                 this.rtc.client.enableAudioVolumeIndicator();
                 this.remoteUsers = await this.rtc.client.remoteUsers;
                 await this.initStream();
@@ -310,7 +302,7 @@
                         hasAudio: this.actionStatus.hasAudio,
                         hasVideo: this.actionStatus.hasVideo,
                         videoTrack: this.rtc.localScreenTrack,
-                    }, this.options.creator, true, this.$api);
+                    });
                     await this.rtc.localScreenTrack.on('track-ended', this.handleTrackEnd);
                 } catch (error) {
                     this.actionStatus.isScreenShare = false;
@@ -332,7 +324,7 @@
                         hasAudio: this.actionStatus.hasAudio,
                         hasVideo: this.actionStatus.hasVideo,
                         videoTrack: this.rtc.localVideoTrack,
-                    }, this.options.creator, false, this.$api);
+                    });
                 } catch (error) {
                     await this.rtc.client.unpublish(this.rtc.localScreenTrack);
                     this.rtc.localScreenTrack.close();
@@ -400,7 +392,7 @@
                         hasAudio: this.micPermission ? this.actionStatus.hasAudio : false,
                         hasVideo: this.actionStatus.hasVideo,
                         videoTrack: this.rtc.localVideoTrack,
-                    }, this.$api);
+                    });
                     this.isLoading = false;
                     this.actionStatus.joined = true;
                 }
@@ -453,15 +445,17 @@
                         this.$message.warning('CONNECTING');
                     }
                 });
+
                 this.rtc.client.on('user-published', async (user, mediaType) => {
                     await this.rtc.client.subscribe(user, mediaType);
-                    addStream(user, this.$api);
+                    addStream(user);
                     if (mediaType === 'audio') {
                         const remoteAudioTrack = user.audioTrack;
                         remoteAudioTrack.play();
                         handleShowStatusDevice('audio', user.uid, true);
                     }
                 });
+
                 this.rtc.client.on('user-unpublished', async (user, mediaType) => {
                     if (mediaType === 'video') {
                         handleShowStatusDevice('video', user.uid, false);
@@ -470,9 +464,11 @@
                         handleShowStatusDevice('audio', user.uid, false);
                     }
                 });
+
                 this.rtc.client.on('user-left', (user) => {
                     this.roomMembers = this.roomMembers.filter((item) => item.id !== user.uid);
                 });
+
                 this.rtc.client.on('user-joined', async (user) => {
                     try {
                         if (user.uid === this.options.uid) {
@@ -482,7 +478,7 @@
                         }
                         await this.getRoomDetail();
                         await this.getMemberOfRoom(user.uid, true);
-                        addStream(user, this.options.creator, false, this.$api);
+                        addStream(user);
                     } catch (error) {
                         this.handleFail(error);
                     }
@@ -499,13 +495,13 @@
             },
 
             async loadListStream() {
-                this.remoteUsers = await this.rtc.client.remoteUsers;
+                this.remoteUsers = this.rtc.client.remoteUsers;
                 this.remoteUsers.map(async (user) => {
                     this.addUserToList(user.uid);
                     if (!document.getElementById(user.uid)) {
                         if (user.hasVideo) {
                             await this.rtc.client.subscribe(user, 'video');
-                            addStream(user, this.options.creator, false, this.$api);
+                            addStream(user);
                         }
                         if (user.hasAudio) {
                             await this.rtc.client.subscribe(user, 'audio');
@@ -515,6 +511,7 @@
                 });
                 this.$message.success('Join successfully!');
             },
+
             async outStream() {
                 if (this.rtc.localAudioTrack) {
                     this.rtc.localAudioTrack?.close();
@@ -539,6 +536,7 @@
                         this.showActionFullScreen = true;
                     }
                 });
+
                 document.addEventListener('mozfullscreenchange', () => {
                     if (document.fullscreenElement) {
                         // console.log(document);
@@ -547,6 +545,7 @@
                         this.actionStatus.zoom = false;
                     }
                 }, false);
+
                 document.addEventListener('webkitfullscreenchange', () => {
                     if (document.fullscreenElement) {
                         // console.log(document);
