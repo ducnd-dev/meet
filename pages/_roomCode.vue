@@ -14,8 +14,9 @@
                         v-for="member in roomMembers"
                         :id="member.id"
                         :key="member.id"
-                        class="user relative rounded-sm overflow-hidden max-h-full max-w-full aspect-video bg-black"
-                        :class="getItemClass"
+                        class="user relative rounded-sm overflow-hidden max-h-full max-w-full aspect-video cursor-pointer bg-black"
+                        :class="`${member.id === memberSelected.id ? 'col-span-full row-span-2' : ''}`"
+                        @click="handleMemberClick(member)"
                     >
                         <div class="absolute z-30 h-10 px-3 py-1 overflow-hidden right-0 bottom-0 left-0 status flex justify-between">
                             <span class="text-white truncate mr-3"> {{ getAvtByName(member.full_name) }} </span>
@@ -114,15 +115,19 @@
                 hasAudio: false,
                 hasVideo: false,
             },
+            memberSelected: {},
         }),
 
         computed: {
-            getItemClass() {
-                return this.roomMembers.length <= 1 ? 'col-span-3 min-h-full' : 'col-span-1';
-            },
-
             getRoomClass() {
-                return `grid grid-cols-1 lg:grid-cols-3 gap-4  relative overflow-y-auto mt-4 ${this.actionStatus.zoom ? 'w-full h-[80vh]' : 'mb-3 lg:mb-12'}`;
+                let gridCol = 'grid-cols-1';
+                if (this.roomMembers.length === 2) {
+                    gridCol = 'grid-cols-2';
+                }
+                if (this.roomMembers.length > 2) {
+                    gridCol = 'grid-cols-3';
+                }
+                return `grid ${gridCol} lg:grid-cols-3 gap-4 place-items-stretch  relative overflow-y-auto mt-4 ${this.actionStatus.zoom ? 'w-full h-[80vh]' : 'mb-3 lg:mb-12'}`;
             },
 
             getContentClass() {
@@ -196,6 +201,7 @@
                 this.handleFullScreen();
                 await this.initData();
             },
+
             handleCheckDevice() {
                 navigator.mediaDevices.enumerateDevices()
                     .then((devices) => {
@@ -206,6 +212,10 @@
                             hasVideo: cameras.length > 0,
                         };
                     });
+            },
+
+            handleMemberClick(member) {
+                this.memberSelected = member;
             },
 
             async initAgora() {
@@ -330,7 +340,7 @@
                     this.rtc.localScreenTrack.close();
                 } finally {
                     this.actionStatus.isScreenShare = false;
-                    handleShowStatusDevice('video', this.options.uid, this.actionStatus.hasVideo, 'handleTrackEnd');
+                    handleShowStatusDevice('video', this.options.uid, this.actionStatus.hasVideo);
                 }
             },
             handleActionsClick(param) {

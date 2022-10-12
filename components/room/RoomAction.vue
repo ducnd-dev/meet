@@ -116,7 +116,6 @@
             },
 
             handleShare() {
-                this.togglePoperLeft();
                 this.$emit('screenShare');
             },
 

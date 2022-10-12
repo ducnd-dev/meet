@@ -72,7 +72,7 @@
             getAvtByName,
 
             getDevice(type, uid) {
-                if (uid === this.uid) {
+                if (uid === this.$auth?.user?.id) {
                     if (type === 'video') return this.actionStatus.hasVideo;
                     return this.actionStatus.hasAudio;
                 }
