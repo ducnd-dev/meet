@@ -35,12 +35,12 @@
                 :class="`${statusProp.people?'absolute top-1 right-1 lg:right-3 text-xs text-danger-100 ':'absolute top-1 right-1 lg:right-3 text-xs  text-gray-900'}`"
             >{{ getTotalMembers }}</i>
         </div>
-        <img
+        <!-- <img
             src="/images/room/full-screen-off.svg"
             title="full screen"
             class=" object-cover cursor-pointer w-8 md:w-11 h-8 md:h-11 lg:w-14 lg:h-14"
             @click="fullScreen"
-        >
+        > -->
     </div>
 </template>
 <script>

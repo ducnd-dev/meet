@@ -2,19 +2,19 @@
     <div
         id="live-class"
         :loading="isLoading"
-        class="flex flex-col relative bg-prim-5 overflow-hidden live-room h-screen p-5 pb-0"
+        class="flex flex-col relative gap-1 bg-prim-5 overflow-hidden live-room h-screen p-5 pb-0"
     >
         <div id="live-class-content-wrapper" :class="getContentClass">
             <div
                 id="room"
-                class="w-full h-full"
+                class="flex justify-center items-center gap-4 relative overflow-y-auto mt-4 flex-wrap w-full h-full"
                 :class="getRoomClass"
             >
                 <div
                     v-for="member in getMembers"
                     :id="member.id"
                     :key="member.id"
-                    class="flex-1 relative rounded-sm overflow-hidden min-h-[220px] aspect-video cursor-pointer bg-black"
+                    class="flex-1 relative rounded-sm overflow-hidden min-w-[220px] min-h-[160px] aspect-video cursor-pointer bg-black"
                     :class="getMenberClass(member)"
                     @click="handleMemberClick(member)"
                 >
@@ -40,10 +40,10 @@
             </div>
         </div>
         <div
-            v-show="showActionFullScreen"
             :class="getActionClass"
         >
             <room-action
+                class="mt-3"
                 :check-device="checkDevice"
                 :options="options"
                 :is-host="isHost"
@@ -119,7 +119,7 @@
 
         computed: {
             getRoomClass() {
-                return `flex justify-center items-center gap-4 relative overflow-y-auto mt-4 ${this.actionStatus.zoom ? 'w-full h-[80vh]' : 'mb-3 lg:mb-14'}`;
+                return ` ${this.actionStatus.zoom ? 'w-full h-[80vh]' : 'mb-3 lg:mb-14'}`;
             },
 
             getContentClass() {
@@ -127,7 +127,7 @@
             },
 
             getMembersClass() {
-                return this.actionStatus.people ? 'flex  w-full lg:w-2/6 chat-wrapper' : 'opacity-0 w-0';
+                return this.actionStatus.people ? 'flex  w-full lg:w-2/6' : 'opacity-0 w-0';
             },
 
             getActionClass() {
@@ -603,7 +603,7 @@
 }
 
 .content-wrapper {
-    height: calc(100vh - 100px);
+    height: calc(100vh - 200px);
 }
 
 .back-drop {
