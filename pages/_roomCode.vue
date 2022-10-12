@@ -2,28 +2,27 @@
     <div
         id="live-class"
         :loading="isLoading"
-        class="flex flex-col relative bg-prim-5 overflow-hidden live-room h-full"
+        class="flex flex-col relative bg-prim-5 overflow-hidden live-room h-screen p-5 pb-0"
     >
         <div id="live-class-content-wrapper" :class="getContentClass">
-            <div class="flex flex-1 flex-cols room-wrapper justify-center gap-4 overflow-hidden">
+            <div
+                id="room"
+                class="w-full h-full"
+                :class="getRoomClass"
+            >
                 <div
-                    id="room"
-                    :class="getRoomClass"
+                    v-for="member in getMembers"
+                    :id="member.id"
+                    :key="member.id"
+                    class="flex-1 relative rounded-sm overflow-hidden min-h-[220px] aspect-video cursor-pointer bg-black"
+                    :class="getMenberClass(member)"
+                    @click="handleMemberClick(member)"
                 >
-                    <div
-                        v-for="member in roomMembers"
-                        :id="member.id"
-                        :key="member.id"
-                        class="user relative rounded-sm overflow-hidden max-h-full max-w-full aspect-video cursor-pointer bg-black"
-                        :class="`${member.id === memberSelected.id ? 'col-span-full row-span-2' : ''}`"
-                        @click="handleMemberClick(member)"
-                    >
-                        <div class="absolute z-30 h-10 px-3 py-1 overflow-hidden right-0 bottom-0 left-0 status flex justify-between">
-                            <span class="text-white truncate mr-3"> {{ getAvtByName(member.full_name) }} </span>
-                            <div class="flex items-center gap-2">
-                                <img :class="`audio-${member.id}`" :src="`/images/room/audio-off-white.svg`" class="w-4 h-4">
-                                <img :class="`video-${member.id}`" :src="`/images/room/video-off-white.svg`" class="w-4 h-4">
-                            </div>
+                    <div class="absolute z-30 h-10 px-3 py-1 overflow-hidden right-0 bottom-0 left-0 status flex justify-between">
+                        <span class="text-white truncate mr-3"> {{ getAvtByName(member.full_name) }} </span>
+                        <div class="flex items-center gap-2">
+                            <img :class="`audio-${member.id}`" :src="`/images/room/audio-off-white.svg`" class="w-4 h-4">
+                            <img :class="`video-${member.id}`" :src="`/images/room/video-off-white.svg`" class="w-4 h-4">
                         </div>
                     </div>
                 </div>
@@ -45,7 +44,6 @@
             :class="getActionClass"
         >
             <room-action
-                class=""
                 :check-device="checkDevice"
                 :options="options"
                 :is-host="isHost"
@@ -73,6 +71,7 @@
     export const APP_IDENTIFIER = process.env.AGORA_APP_IDENTIFIER;
 
     export default {
+        layout: 'room',
         components: {
             RoomAction,
             Members,
@@ -120,18 +119,11 @@
 
         computed: {
             getRoomClass() {
-                let gridCol = 'grid-cols-1';
-                if (this.roomMembers.length === 2) {
-                    gridCol = 'grid-cols-2';
-                }
-                if (this.roomMembers.length > 2) {
-                    gridCol = 'grid-cols-3';
-                }
-                return `grid ${gridCol} lg:grid-cols-3 gap-4 place-items-stretch  relative overflow-y-auto mt-4 ${this.actionStatus.zoom ? 'w-full h-[80vh]' : 'mb-3 lg:mb-12'}`;
+                return `flex justify-center items-center gap-4 relative overflow-y-auto mt-4 ${this.actionStatus.zoom ? 'w-full h-[80vh]' : 'mb-3 lg:mb-14'}`;
             },
 
             getContentClass() {
-                return `${this.actionStatus.zoom ? '' : 'container'} flex flex-1 h-full content-wrapper`;
+                return 'flex flex-1 h-full content-wrapper';
             },
 
             getMembersClass() {
@@ -140,6 +132,18 @@
 
             getActionClass() {
                 return 'flex  justify-center actions-wrapper p-3 z-50';
+            },
+
+            getMembers() {
+                if (this.memberSelected.id) {
+                    return this.roomMembers.reduce((acc, element) => {
+                        if (element.id === this.memberSelected.id) {
+                            return [element, ...acc];
+                        }
+                        return [...acc, element];
+                    }, []);
+                }
+                return this.roomMembers;
             },
         },
 
@@ -215,7 +219,14 @@
             },
 
             handleMemberClick(member) {
-                this.memberSelected = member;
+                this.memberSelected = this.memberSelected.id !== member.id ? member : {};
+            },
+
+            getMenberClass(member) {
+                if (this.memberSelected.id) {
+                    return this.memberSelected.id === member.id ? 'grow' : 'grow-0';
+                }
+                return 'grow';
             },
 
             async initAgora() {
@@ -579,9 +590,6 @@
 </script>
 
 <style lang="scss" >
-.live-room {
-    height: calc(100vh - 84px);
-}
 #room {
     @apply overflow-hidden;
     .user {
@@ -595,7 +603,7 @@
 }
 
 .content-wrapper {
-    height: calc(100% - 100px);
+    height: calc(100vh - 100px);
 }
 
 .back-drop {

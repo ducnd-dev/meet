@@ -1,48 +1,46 @@
 <template>
-    <div class="flex justify-center actions gap-4">
-        <div class="flex justify-between items-center gap-4">
+    <div class="flex justify-center actions gap-4 bg-black bg-opacity-20 p-2 rounded-md">
+        <img
+            :src="`/images/room/mic-${ statusProp.hasAudio ? 'on' : 'off'}.svg`"
+            title="voice"
+            class="  object-cover cursor-pointer w-8 md:w-11 h-8 md:h-11 lg:w-14 lg:h-14"
+            @click="handleClick('hasAudio')"
+        >
+        <img
+            :src="`/images/room/camera-${ statusProp.hasVideo ? 'on':'off'}.svg`"
+            title="camera"
+            class=" object-cover cursor-pointer w-8 md:w-11 h-8 md:h-11 lg:w-14 lg:h-14"
+            @click="handleClick('hasVideo')"
+        >
+        <img
+            :src="`/images/room/share-screen-${statusProp.isScreenShare ? 'on':'off' }.svg`"
+            title="screen share"
+            class=" cursor-pointer w-8 md:w-11 h-8 md:h-11 lg:w-14 lg:h-14"
+            @click="handleShare"
+        >
+        <img
+            src="/images/room/end-call.svg"
+            title="end"
+            class=" cursor-pointer w-8 md:w-11 h-8 md:h-11 lg:w-14 lg:h-14"
+            @click="handleClickLeave"
+        >
+        <div class="relative">
             <img
-                :src="`/images/room/mic-${ statusProp.hasAudio ? 'on' : 'off'}.svg`"
-                title="voice"
-                class="  object-cover cursor-pointer w-8 md:w-11 h-8 md:h-11 lg:w-14 lg:h-14"
-                @click="handleClick('hasAudio')"
+                :src="`/images/room/people-${statusProp.people?'on':'off'}.svg`"
+                title="members"
+                class="object-cover  cursor-pointer w-8 md:w-11 h-8 md:h-11 lg:w-14 lg:h-14"
+                @click="handleClick('people')"
             >
-            <img
-                :src="`/images/room/camera-${ statusProp.hasVideo ? 'on':'off'}.svg`"
-                title="camera"
-                class=" object-cover cursor-pointer w-8 md:w-11 h-8 md:h-11 lg:w-14 lg:h-14"
-                @click="handleClick('hasVideo')"
-            >
-            <img
-                :src="`/images/room/share-screen-${statusProp.isScreenShare ? 'on':'off' }.svg`"
-                title="screen share"
-                class=" cursor-pointer w-8 md:w-11 h-8 md:h-11 lg:w-14 lg:h-14"
-                @click="handleShare"
-            >
-            <img
-                src="/images/room/end-call.svg"
-                title="end"
-                class=" cursor-pointer w-8 md:w-11 h-8 md:h-11 lg:w-14 lg:h-14"
-                @click="handleClickLeave"
-            >
-            <div class="relative">
-                <img
-                    :src="`/images/room/people-${statusProp.people?'on':'off'}.svg`"
-                    title="members"
-                    class="object-cover  cursor-pointer w-8 md:w-11 h-8 md:h-11 lg:w-14 lg:h-14"
-                    @click="handleClick('people')"
-                >
-                <i
-                    :class="`${statusProp.people?'absolute top-1 right-1 lg:right-3 text-xs text-danger-100 ':'absolute top-1 right-1 lg:right-3 text-xs  text-gray-900'}`"
-                >{{ getTotalMembers }}</i>
-            </div>
-            <img
-                src="/images/room/full-screen-off.svg"
-                title="full screen"
-                class=" object-cover cursor-pointer w-8 md:w-11 h-8 md:h-11 lg:w-14 lg:h-14"
-                @click="fullScreen"
-            >
+            <i
+                :class="`${statusProp.people?'absolute top-1 right-1 lg:right-3 text-xs text-danger-100 ':'absolute top-1 right-1 lg:right-3 text-xs  text-gray-900'}`"
+            >{{ getTotalMembers }}</i>
         </div>
+        <img
+            src="/images/room/full-screen-off.svg"
+            title="full screen"
+            class=" object-cover cursor-pointer w-8 md:w-11 h-8 md:h-11 lg:w-14 lg:h-14"
+            @click="fullScreen"
+        >
     </div>
 </template>
 <script>
