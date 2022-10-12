@@ -378,12 +378,8 @@
                         this.rtc.localAudioTrack = await this.$AgoraRTC.createMicrophoneAudioTrack();
                         if (this.rtc.localAudioTrack) {
                             await this.rtc.client.publish(this.rtc.localAudioTrack);
-                            if (this.micPermission) {
-                                this.actionStatus.hasAudio = true;
-                            } else {
-                                this.actionStatus.hasAudio = false;
-                                this.rtc.localAudioTrack.setEnabled(false);
-                            }
+                            this.actionStatus.hasAudio = false;
+                            this.rtc.localAudioTrack.setEnabled(false);
                         }
                     }
                     // create and publish camera
@@ -399,7 +395,7 @@
                 } finally {
                     await addStream({
                         uid: this.options.uid,
-                        hasAudio: this.micPermission ? this.actionStatus.hasAudio : false,
+                        hasAudio: this.actionStatus.hasAudio,
                         hasVideo: this.actionStatus.hasVideo,
                         videoTrack: this.rtc.localVideoTrack,
                     });

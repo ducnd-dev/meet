@@ -111,7 +111,6 @@
             },
 
             handleClick(field) {
-                if (field === 'hasAudio' && !this.micPermission) return;
                 this.$emit('clickActions', { field, status: !this.statusProp[field] });
             },
 
