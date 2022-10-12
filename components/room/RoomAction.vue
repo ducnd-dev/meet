@@ -96,15 +96,15 @@
 
         methods: {
             handleClickLeave() {
+                const sefl = this;
                 this.$confirm({
                     title: 'Are you sure you want to leave this room?',
                     onOk() {
-                        window.close();
+                        sefl.$router.push('/');
                     },
                     onCancel() {
                         console.log('Cancel');
                     },
-                    class: 'test',
                 });
             },
 
