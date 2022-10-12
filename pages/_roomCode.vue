@@ -122,7 +122,7 @@
             },
 
             getRoomClass() {
-                return `grid grid-cols-1 lg:grid-cols-3 gap-4  relative overflow-y-auto mt-4 ${this.actionStatus.zoom ? '' : 'mb-3 lg:mb-12'}`;
+                return `grid grid-cols-1 lg:grid-cols-3 gap-4  relative overflow-y-auto mt-4 ${this.actionStatus.zoom ? 'w-full h-[80vh]' : 'mb-3 lg:mb-12'}`;
             },
 
             getContentClass() {
@@ -134,7 +134,7 @@
             },
 
             getActionClass() {
-                return `flex  justify-center actions-wrapper p-3 z-50 ${this.actionStatus.zoom ? 'fixed bottom-0 bg-gray-400 bg-opacity-5 back-drop' : ''}`;
+                return 'flex  justify-center actions-wrapper p-3 z-50';
             },
         },
 
