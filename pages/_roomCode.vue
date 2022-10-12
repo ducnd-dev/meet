@@ -178,6 +178,10 @@
         },
 
         async mounted() {
+            if (window.location.protocol !== 'https:' && !window.location.href.includes('localhost')) {
+                window.location.replace(`https:${window.location.href.substring(window.location.protocol.length)}`);
+                return;
+            }
             if (!this.$auth.loggedIn) {
                 this.$refs.login.open();
                 this.$auth.options.redirect = false;
@@ -542,6 +546,7 @@
                 // if (this.isHost) {
                 //     this.handleAutoRollCall(false);
                 // }
+                this.$auth?.logout();
             },
 
             handleFullScreen() {
@@ -589,19 +594,14 @@
     };
 </script>
 
-<style lang="scss" >
+<style lang="scss" scroped>
 #room {
     @apply overflow-hidden;
-    .user {
-        // div:not(.status) {
-        //     @apply flex justify-center w-fit;
-        //     video {
-        //         @apply z-20 rounded-sm;
-        //     }
-        // }
-    }
 }
 
+video {
+    @apply max-w-full max-h-full aspect-video;
+}
 .content-wrapper {
     height: calc(100vh - 200px);
 }
